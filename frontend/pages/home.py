@@ -4,6 +4,22 @@ import requests
 # Modulo de teste da home (em construção)
 API_URL = "http://127.0.0.1:5000"
 
+
+st.set_page_config(
+    initial_sidebar_state="collapsed"
+)
+
+
+# Ocultar side-bar do streamlit
+st.markdown("""
+<style>
+    [data-testid="stSidebar"] {
+        display: none;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+
 st.title("API DE FILMES")
 
 st.sidebar.title("MENU")

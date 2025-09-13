@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
 import re
+from utils.utils import validar_senha
 
 # Configuração da página
 st.set_page_config(
@@ -8,6 +9,16 @@ st.set_page_config(
     layout="centered",
     initial_sidebar_state="collapsed"
 )
+
+# Ocultar side-bar do streamlit
+st.markdown("""
+<style>
+    [data-testid="stSidebar"] {
+        display: none;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 
 # URLs da API
 API_URL = "http://127.0.0.1:5000"
@@ -21,14 +32,6 @@ def validar_email(email):
 
 
 # Validação de força da senha
-def validar_senha(senha):
-    if len(senha) < 6:
-        return False, "A senha deve ter pelo menos 6 caracteres"
-    if not any(c.isalpha() for c in senha):
-        return False, "A senha deve conter pelo menos uma letra"
-    if not any(c.isdigit() for c in senha):
-        return False, "A senha deve conter pelo menos um número"
-    return True, "Senha válida"
 
 
 # Função para cadastrar o usuário na API

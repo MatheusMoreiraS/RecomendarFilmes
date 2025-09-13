@@ -8,8 +8,19 @@ API_URL = "http://127.0.0.1:5000"
 # Configuração da página
 st.set_page_config(
     page_title="Recomendação de filmes - Login",
-    layout="centered"
+    layout="centered",
+    initial_sidebar_state="collapsed"
 )
+
+# Ocultar side-bar do streamlit
+st.markdown("""
+<style>
+    [data-testid="stSidebar"] {
+        display: none;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 
 # Função para checar o login
 

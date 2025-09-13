@@ -1,5 +1,18 @@
 import streamlit as st
 
+st.set_page_config(
+    initial_sidebar_state="collapsed"
+)
+
+# Ocultar side-bar do streamlit
+st.markdown("""
+<style>
+    [data-testid="stSidebar"] {
+        display: none;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 
 def main():
     st.set_page_config(

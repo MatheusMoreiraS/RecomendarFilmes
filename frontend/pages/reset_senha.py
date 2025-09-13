@@ -5,6 +5,19 @@ import re
 API_URL = "http://127.0.0.1:5000"
 URL_RESET = f"{API_URL}/reset_senha"
 
+st.set_page_config(
+    initial_sidebar_state="collapsed"
+)
+
+# Ocultar side-bar do streamlit
+st.markdown("""
+<style>
+    [data-testid="stSidebar"] {
+        display: none;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 
 # Validação simples de email
 def validar_email(email: str) -> bool:
