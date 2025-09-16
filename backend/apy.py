@@ -38,9 +38,8 @@ class Usuario(db.Model):
     def __repr__(self):
         return f'<Usuario {self.username}>'
 
+
 # Rota de login
-
-
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -58,16 +57,14 @@ def login():
         print("Autenticacao falhou!!")
         return jsonify({"success": False, "message": "usuario ou senha incorreta"}), 401
 
+
 # Rota de status da API.
-
-
 @app.route('/status')
 def status():
     return jsonify({'status': "API FUNCIONANDO"})
 
+
 # Simulação básica de recomendação
-
-
 @app.route('/filmes/mock')
 def recomendacoes_mock():
     filmes_falsos = [
@@ -77,9 +74,8 @@ def recomendacoes_mock():
     ]
     return jsonify(filmes_falsos)
 
+
 # Rota de cadastro de usuário
-
-
 @app.route('/cadastro', methods=['POST'])
 def cadastro():
     data = request.get_json()
@@ -117,9 +113,8 @@ def cadastro():
         "success": True,
         "message": f"usuario {user} cadastrado com sucesso!"}), 200
 
+
 # Rota para o reset da senha
-
-
 @app.route('/reset_senha', methods=['POST'])
 def resetar_senha():
     data = request.get_json()
@@ -136,8 +131,8 @@ def resetar_senha():
     link = f"http://localhost:8501/redefinir?token={token}"
 
     msg = MIMEText(f"Clique no link para redefinir sua senha: {link}")
-    msg['Subject'] = "Redefinição de senha"
-    msg['From'] = "rotacinefilmes@gmail.com"
+    msg['Subject'] = f"Redefinição de senha para {usuario_db.username}"
+    msg['From'] = os.getenv("EMAIL_USER")
     msg['To'] = email
 
     try:
@@ -155,9 +150,8 @@ def resetar_senha():
         "message": f"Email enviado com instruções para {email}"
     })
 
+
 # Rota para redefinir a senha
-
-
 @app.route('/redefinir', methods=["POST"])
 def confirmar_reset():
     data = request.get_json()
@@ -180,16 +174,14 @@ def confirmar_reset():
     db.session.commit()
 
     del reset_tokens[token]
-    print(f"Senha de {email} foi alterada no banco de dados")
 
     return jsonify({
         "sucess": True,
         "message": "senha redefinida com sucesso!"
     })
 
+
 # Inicialização do bloco de código main()
-
-
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
