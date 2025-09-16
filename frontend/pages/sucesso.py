@@ -1,9 +1,5 @@
 import streamlit as st
 
-st.set_page_config(
-    initial_sidebar_state="collapsed"
-)
-
 # Ocultar side-bar do streamlit
 st.markdown("""
 <style>
@@ -14,7 +10,9 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
+# Função principal
 def main():
+    # Configuração da página
     st.set_page_config(
         page_title="Cadastro Concluído",
         layout="centered",
@@ -27,7 +25,7 @@ def main():
     # Botão único para ir ao login
     col_login = st.columns([1, 2, 1])[1]
     with col_login:
-        if st.button("🔐 Ir para Login", use_container_width=True):
+        if st.button("Ir para Login", use_container_width=True):
             st.switch_page("app.py")  # nome da sua página de login
 
 

@@ -5,6 +5,7 @@ from utils.utils import validar_senha
 API_URL = "http://127.0.0.1:5000"
 REDEFINIR_URL = 'http://127.0.0.1:5000/redefinir'
 
+# Configuração da página
 st.set_page_config(
     initial_sidebar_state="collapsed"
 )
@@ -49,6 +50,7 @@ if token:
         erros = []
         if not nova_senha:
             erros.append("Senha é obrigatória")
+
         elif not senha_valida:
             erros.append(senha_msg)
 
@@ -58,9 +60,9 @@ if token:
         if nova_senha == confirmar:
             resp = requests.post(f"{API_URL}/redefinir",
                                  json={"token": token, "new_pw": nova_senha})
+
             if resp.status_code == 200:
                 st.success("Senha redefinida com sucesso! ✅")
-                # st.page_link("app.py", label="Ir para página de login.")
                 st.markdown(
                             "<a href='/' style='display:block; text-align:center; color:LimeGreen; text-decoration:underline;'>Página de Login</a>",
                             unsafe_allow_html=True

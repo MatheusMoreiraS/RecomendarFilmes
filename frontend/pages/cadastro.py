@@ -1,7 +1,6 @@
 import streamlit as st
 import requests
-import re
-from utils.utils import validar_senha
+from utils.utils import validar_senha, validar_email
 
 # Configuração da página
 st.set_page_config(
@@ -10,7 +9,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Ocultar side-bar do streamlit
+# Ocultar side-bar
 st.markdown("""
 <style>
     [data-testid="stSidebar"] {
@@ -23,15 +22,6 @@ st.markdown("""
 # URLs da API
 API_URL = "http://127.0.0.1:5000"
 URL_CADASTRO = f"{API_URL}/cadastro"
-
-
-# Validação básica de email
-def validar_email(email):
-    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    return re.match(pattern, email) is not None
-
-
-# Validação de força da senha
 
 
 # Função para cadastrar o usuário na API
@@ -89,10 +79,9 @@ def main():
                 help="Nome usado para fazer login"
             )
             generos_selecao = st.multiselect(
-                "Gêneros favoritos",
+                "Gêneros favoritos (escolha três)",
                 options=lista_generos,
                 placeholder="Escolha três opções",
-                max_selections=3
             )
 
         password = st.text_input(
@@ -205,8 +194,7 @@ def main():
     st.markdown("---")
     st.caption("Recomendação de Filmes | Já tem conta? Faça login!")
 
+
 # Executa o código
-
-
 if __name__ == "__main__":
     main()

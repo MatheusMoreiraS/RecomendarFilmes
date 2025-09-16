@@ -23,14 +23,10 @@ st.markdown("""
 
 
 # Função para checar o login
-
-
 def check_login(username, password):
     payload = {'username': username, "password": password}
-    print(f"enviadno para a api{payload}")
     try:
         response = requests.post(URL_LOGIN, json=payload)
-        print(f"status de resposta = {response.status_code}")
         if response.status_code == 401:
             return {"success": False, "message": "Senha ou usuário incorreto"}
         if response.status_code == 200:

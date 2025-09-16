@@ -1,13 +1,9 @@
 import streamlit as st
 import requests
-import re
+from utils.utils import validar_email
 
 API_URL = "http://127.0.0.1:5000"
 URL_RESET = f"{API_URL}/reset_senha"
-
-st.set_page_config(
-    initial_sidebar_state="collapsed"
-)
 
 # Ocultar side-bar do streamlit
 st.markdown("""
@@ -17,12 +13,6 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
-
-
-# Validação simples de email
-def validar_email(email: str) -> bool:
-    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    return re.match(pattern, email) is not None
 
 
 # Solicita o reset para o backend
@@ -47,6 +37,7 @@ def main():
     st.title("Esqueci minha senha")
     st.markdown("### Informe seu email para recuperar o acesso")
 
+    # Criação do formulário
     with st.form("reset_form"):
         email = st.text_input("Email", placeholder="Digite seu email")
         submitted = st.form_submit_button("Enviar", use_container_width=True)
@@ -61,8 +52,6 @@ def main():
                     st.success("Se este email estiver cadastrado, enviaremos instruções de redefinição.")
                 else:
                     st.error(f"Erro: {resp.get('message', 'Falha ao solicitar redefinição')}")
-
-    st.divider()
 
     # Voltar ao login
     if st.button("⬅️ Voltar para Login", use_container_width=True, type="secondary"):
