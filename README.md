@@ -132,7 +132,7 @@ streamlit run app.py
 # A aplicação irá rodar automaticamente no seu computador.
 ```
 
-###Endpoints da API
+### Endpoints da API
 
 A API do backend possui os seguintes endpoints:
 ```
