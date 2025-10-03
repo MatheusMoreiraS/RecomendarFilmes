@@ -1,5 +1,4 @@
 from flask import Flask, jsonify, request
-from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 import secrets
 import smtplib
@@ -7,6 +6,8 @@ import os
 from email.mime.text import MIMEText
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
+from database import db
+from models import Usuario, Filmes
 
 load_dotenv()
 
@@ -16,28 +17,12 @@ app = Flask(__name__)
 # Conectando com o banco de dados
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
 app.secret_key = os.getenv("SECRET_KEY")
 
-db = SQLAlchemy(app)
+db.init_app(app)
 
 # Resetando tokens de conexão
 reset_tokens = {}
-
-
-# Criando classe de banco de dados
-class Usuario(db.Model):
-    __tablename__ = 'usuarios'
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(20), unique=True, nullable=False)
-    name = db.Column(db.String(120), nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    pw_hash = db.Column(db.String(255), nullable=False)
-    generos_fav = db.Column(db.String(255), nullable=False)
-
-    def __repr__(self):
-        return f'<Usuario {self.username}>'
-
 
 # Rota de login
 @app.route('/login', methods=['POST'])
@@ -179,6 +164,38 @@ def confirmar_reset():
         "sucess": True,
         "message": "senha redefinida com sucesso!"
     })
+
+
+# Rota para pesquisa de filmes
+@app.route('/filmes/pesquisar', methods=['GET'])
+def pesquisar_filme():
+    termo_pesquisa = request.args.get('q')  # URL/?q=talfilme
+
+    if not termo_pesquisa:
+        return jsonify({
+            "success": False,
+            "message": "Termo de pesquisa não fornecido"}), 400
+
+    termo_like = f"%{termo_pesquisa}%"
+    filmes_encontrados = Filmes.query.filter(Filmes.titulo.ilike(termo_like)).limit(20).all()
+
+    if not filmes_encontrados:
+        return jsonify([])
+
+    filmes_json = [
+        {
+            'tmdb_id': filme.tmdb_id,
+            'titulo': filme.titulo,
+            'sinopse': filme.sinopse,
+            'generos': filme.generos,
+            'popularidade': filme.popularidade,
+            'media_votos': filme.media_votos,
+            'qtd_votos': filme.qtd_votos,
+            'poster_path': filme.poster_path
+        } for filme in filmes_encontrados
+    ]
+
+    return jsonify(filmes_json)
 
 
 # Inicialização do bloco de código main()
