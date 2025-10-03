@@ -1,23 +1,8 @@
 import streamlit as st
 import requests
-from utils.utils import validar_senha, validar_email
+from utils.utils import validar_senha, validar_email, setup_page
 
-# Configuração da página
-st.set_page_config(
-    page_title="Cadastro",
-    layout="centered",
-    initial_sidebar_state="collapsed"
-)
-
-# Ocultar side-bar
-st.markdown("""
-<style>
-    [data-testid="stSidebar"] {
-        display: none;
-    }
-</style>
-""", unsafe_allow_html=True)
-
+setup_page(titulo="Cadastro", hide_sidebar=True)
 
 # URLs da API
 API_URL = "http://127.0.0.1:5000"

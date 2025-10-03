@@ -1,29 +1,19 @@
 import streamlit as st
 import requests
-from utils.utils import validar_senha
+from utils.utils import validar_senha, setup_page
+
+setup_page(titulo="Redefinição de senha", hide_sidebar=True)
 
 API_URL = "http://127.0.0.1:5000"
 REDEFINIR_URL = 'http://127.0.0.1:5000/redefinir'
-
-# Configuração da página
-st.set_page_config(
-    initial_sidebar_state="collapsed"
-)
-
-# Ocultar side-bar do streamlit
-st.markdown("""
-<style>
-    [data-testid="stSidebar"] {
-        display: none;
-    }
-</style>
-""", unsafe_allow_html=True)
-
 
 token = st.query_params.get("token")  # Pega o token da URL
 
 # Verifica o token
 if token:
+    if st.button("Voltar", help="Voltar para o login"):
+        st.switch_page("app.py")
+
     st.title("Redefinir Senha")
     nova_senha = st.text_input(
             "Senha",
@@ -63,10 +53,6 @@ if token:
 
             if resp.status_code == 200:
                 st.success("Senha redefinida com sucesso! ✅")
-                st.markdown(
-                            "<a href='/' style='display:block; text-align:center; color:LimeGreen; text-decoration:underline;'>Página de Login</a>",
-                            unsafe_allow_html=True
-                            )
 
             else:
                 st.error(resp.json().get("message"))

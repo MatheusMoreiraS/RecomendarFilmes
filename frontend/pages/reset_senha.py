@@ -1,18 +1,11 @@
 import streamlit as st
 import requests
-from utils.utils import validar_email
+from utils.utils import validar_email, setup_page
+
+setup_page(titulo="Esqueci minha senha", hide_sidebar=True)
 
 API_URL = "http://127.0.0.1:5000"
 URL_RESET = f"{API_URL}/reset_senha"
-
-# Ocultar side-bar do streamlit
-st.markdown("""
-<style>
-    [data-testid="stSidebar"] {
-        display: none;
-    }
-</style>
-""", unsafe_allow_html=True)
 
 
 # Solicita o reset para o backend
@@ -26,13 +19,6 @@ def solicitar_reset(email: str):
 
 # Função principal
 def main():
-    # Configurações da página
-    st.set_page_config(
-        page_title="Esqueci minha senha",
-        layout="centered",
-        initial_sidebar_state="collapsed"
-    )
-
     # Título
     st.title("Esqueci minha senha")
     st.markdown("### Informe seu email para recuperar o acesso")
@@ -54,7 +40,7 @@ def main():
                     st.error(f"Erro: {resp.get('message', 'Falha ao solicitar redefinição')}")
 
     # Voltar ao login
-    if st.button("⬅️ Voltar para Login", use_container_width=True, type="secondary"):
+    if st.button("Voltar para Login", use_container_width=True, type="secondary"):
         st.switch_page("app.py")
 
 
