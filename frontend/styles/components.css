@@ -1,0 +1,23 @@
+/* Botão de busca */
+.stButton > button,
+[data-testid="stFormSubmitButton"] > button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    padding: 0.6rem 1.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+}
+/* funcionando */
+.stButton > button:hover,
+[data-testid="stFormSubmitButton"] > button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102,126,234,0.4);
+} 
+/* Título do filme */
+.movie-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+}
