@@ -1,6 +1,7 @@
 import streamlit as st
 import re
 from time import sleep
+from typing import List
 
 
 # Validação de senha
@@ -57,7 +58,7 @@ def setup_page(titulo: str, layout: str = "centered", protegida: bool = False, h
         st.switch_page("app.py")
 
     if st.session_state.get("logged_in", False) and not hide_sidebar:
-        st.sidebar.success(f"Logado como: {st.session_state.get('username', '')}")
+        st.sidebar.success(f"Logado como: {st.session_state.get('username')}")
         st.sidebar.header("Menu de navegação")
 
         st.sidebar.page_link("pages/busca_filmes.py", label="Buscar filmes")
@@ -65,7 +66,25 @@ def setup_page(titulo: str, layout: str = "centered", protegida: bool = False, h
 
         st.sidebar.divider()
 
-        if st.sidebar.button("Logout", use_container_width=True, type="primary"):
+        if st.sidebar.button(
+                "Logout", use_container_width=True, type="primary"):
             st.session_state["logged_in"] = False
             st.session_state.pop("username", None)
             st.switch_page("app.py")
+
+
+# Carregar arquivos CSS
+def load_css(file_paths: List[str]):
+    """
+    Args:
+        file_paths: Uma lista para os arquivos css.
+    """
+    full_css = ""
+    for file_path in file_paths:
+        try:
+            with open(file_path) as f:
+                full_css += f.read()
+        except FileNotFoundError:
+            st.error(f"Arquivo CSS não encontrado em: {file_path}")
+
+    st.markdown(f"<style>{full_css}</style>", unsafe_allow_html=True)

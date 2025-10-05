@@ -1,117 +1,129 @@
 import streamlit as st
 import requests
-from time import sleep
-from utils.utils import setup_page
+from utils.utils import setup_page, load_css
 
 setup_page(titulo="Rotacine", layout="wide", protegida=True)
 
-# CSS
-st.markdown("""
-<style>
-    /* Badge de gêneros */
-    .generos {
-        display: inline-block;
-        padding: 4px 10px;
-        border-radius: 10px;
-        font-size: 0.8rem;
-        margin: 2px 5px 2px 0;
-        background: linear-gradient(90deg, #FF512F, #DD2476);
-        color: white;
-        font-weight: bold;
-    }
+# CSS Modernizado
+load_css(['styles/geral.css', 'styles/components.css', 'styles/badges.css'])
 
-    /* Badge de nota */
-    .media-votos {
-        display: inline-block;
-        padding: 6px 12px;
-        border-radius: 12px;
-        font-size: 1rem;
-        margin: 6px 5px 4px 0;
-        background: #FFD700;
-        color: #000;
-        font-weight: bold;
-    }
-
-    /* Quantidade de votos (menor e cinza) */
-    .votos {
-        font-size: 0.8rem;
-        color: #666;
-        margin-left: 6px;
-    }
-    h1 {
-        text-align: center;
-    }
-</style>
-""", unsafe_allow_html=True)
-
-if "logged_in" not in st.session_state or not st.session_state["logged_in"]:
-    st.error("Acesso negado. Por favor, faça o login primeiro.")
-    sleep(5)
-    st.switch_page("app.py")
-col1, col2, col3 = st.columns([1, 8, 1])
-
-with col1:
-    st.write("")
-
-with col2:
-    st.title("RotaCine")
-
-with col3:
-    st.write("")
-
-
-# Url
+# URLs
 API_URL = "http://127.0.0.1:5000"
 IMAGEM_URL = "https://image.tmdb.org/t/p/w500"
 
-st.header("Pesquisar Filmes")
-termo_pesquisa = st.text_input(
-    "Digite o nome de um filme que você gosta:",
-    placeholder="Ex: Batman, O Senhor dos Anéis, Interestelar..."
-)
+# Header
+st.markdown('<h1 class="titulo">🎬 RotaCine</h1>', unsafe_allow_html=True)
+st.markdown('<p class="subtitulo">Descubra filmes incríveis baseados nos seus favoritos</p>', unsafe_allow_html=True)
 
-if st.button("Procurar"):
-    if termo_pesquisa:
+# Seção de pesquisa
+col_search, col_button, col_filtro = st.columns([5, 1.5, 2])
+
+with col_search:
+    termo_pesquisa = st.text_input(
+        "Digite o nome do filme:",
+        placeholder="Ex: Batman, O Senhor dos Anéis, Interestelar...",
+        label_visibility="collapsed",
+        key="search_input"
+    )
+
+with col_button:
+    buscar = st.button("Buscar", width="stretch")
+
+with col_filtro:
+    nota_minima = st.selectbox(
+        "Filtrar por nota",
+        options=[0, 5, 6, 7, 8],
+        format_func=lambda x: f"⭐ Nota mínima: {x}" if x > 0 else "Todas as notas",
+        label_visibility='collapsed'
+    )
+
+st.divider()
+
+# Lógica de busca
+if buscar or (termo_pesquisa and len(termo_pesquisa) > 2):
+    if termo_pesquisa.strip():
         try:
-            url = f"{API_URL}/filmes/pesquisar"
-            response = requests.get(url, params={'q': termo_pesquisa})
-            response.raise_for_status()
-            resultados = response.json()
+            with st.spinner('Buscando filmes...'):
+                url = f"{API_URL}/filmes/pesquisar"
+                response = requests.get(url, params={'q': termo_pesquisa}, timeout=10)
+                response.raise_for_status()
+                resultados = response.json()
+
+            # Filtro por nota
+            if nota_minima > 0:
+                resultados = [f for f in resultados if f.get('media_votos', 0) >= nota_minima]
 
             if resultados:
-                st.success(f"Encontramos {len(resultados)} resultado(s) para '{termo_pesquisa}':")
-                st.divider()
+                st.markdown(
+                    f'<div class="result-count">{len(resultados)} filme(s) encontrado(s) para "{termo_pesquisa}"</div>',
+                    unsafe_allow_html=True
+                )
 
-                cols = st.columns(5)
+                cols = st.columns(5, gap="medium")
 
                 for i, filme in enumerate(resultados):
                     col = cols[i % 5]
-
                     with col:
                         with st.container(border=True):
+                            # Poster
                             if filme.get("poster_path"):
-                                st.image(f"{IMAGEM_URL}{filme['poster_path']}", use_container_width=True)
+                                st.image(
+                                    f"{IMAGEM_URL}{filme['poster_path']}",
+                                )
 
-                            st.subheader(filme['titulo'])
-
+                            # Título
                             st.markdown(
-                                f"<span class='generos'>🎭 {filme['generos']}</span>",
+                                f'<div class="movie-title">{filme["titulo"]}</div>',
                                 unsafe_allow_html=True
                             )
 
+                            # Gênero
+                            if filme['generos']:
+                                st.markdown(
+                                    f'<span class="genero-badge">🎭 {filme["generos"]}</span>',
+                                    unsafe_allow_html=True
+                                )
+
+                            # Notas
+                            nota = filme['media_votos']
+                            if nota >= 8:
+                                classe_nota = "nota-alta"
+                            elif nota >= 6:
+                                classe_nota = "nota-media"
+                            else:
+                                classe_nota = "nota-baixa"
                             st.markdown(
-                                f"<span class='media-votos'>⭐ {filme['media_votos']:.1f}/10</span>"
-                                f"<span class='votos'>({filme['qtd_votos']} votos)</span>",
+                                f"<span class='votos-badge {classe_nota}'>⭐ {nota:.1f}/10</span>"
+                                f"<span class='vote-count'>({filme['qtd_votos']:,} votos)</span>",
                                 unsafe_allow_html=True
                             )
 
-                            with st.expander("📖 Ver Sinopse"):
-                                if filme['sinopse'] == "":
-                                    st.write("Sinopse não disponível")
-                                st.write(filme['sinopse'])
+                            # Sinopse
+                            with st.expander("Ver sinopse"):
+                                sinopse = filme.get('sinopse')
+                                if sinopse:
+                                    st.write(sinopse)
+                                else:
+                                    st.info("Sinopse não disponível")
+
             else:
-                st.warning(f"Nenhum filme encontrado para '{termo_pesquisa}'. Tente outro termo.")
+                st.warning(
+                    f"🔍 Nenhum filme encontrado para **'{termo_pesquisa}'**")
+                st.info("💡 **Dicas:**\n- Verifique a ortografia"
+                        "\n- Tente palavras-chave diferentes"
+                        "\n- Reduza a nota mínima no filtro")
+
+        except requests.Timeout:
+            st.error("Tempo limite excedido. Tente novamente.")
         except requests.RequestException as e:
             st.error(f"Erro ao comunicar com a API: {e}")
+        except Exception as e:
+            st.error(f"Erro inesperado: {e}")
     else:
-        st.info("Por favor, digite algo para pesquisar.")
+        st.warning("Por favor, digite o nome de um filme para pesquisar.")
+else:
+    # Tela inicial com instruções
+    st.info("Como funciona?")
+    st.caption("Digite o nome de um filme que você gosta no campo acima e"
+               " descubra recomendações similares.")
+    st.caption("Use o filtro para refinar sua busca!")

@@ -1,11 +1,12 @@
 import streamlit as st
 import requests
-from utils.utils import validar_senha, setup_page
+from utils.utils import validar_senha, setup_page, load_css
 
 setup_page(titulo="Redefinição de senha", hide_sidebar=True)
+load_css(["styles/geral.css", "styles/components.css"])
 
 API_URL = "http://127.0.0.1:5000"
-REDEFINIR_URL = 'http://127.0.0.1:5000/redefinir'
+REDEFINIR_URL = f'{API_URL}/redefinir'
 
 token = st.query_params.get("token")  # Pega o token da URL
 
@@ -14,7 +15,8 @@ if token:
     if st.button("Voltar", help="Voltar para o login"):
         st.switch_page("app.py")
 
-    st.title("Redefinir Senha")
+    st.markdown('<h1 class="titulo">Alteração de senha</h1>',
+                unsafe_allow_html=True)
     nova_senha = st.text_input(
             "Senha",
             type="password",

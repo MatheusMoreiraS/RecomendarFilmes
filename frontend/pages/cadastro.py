@@ -1,8 +1,9 @@
 import streamlit as st
 import requests
-from utils.utils import validar_senha, validar_email, setup_page
+from utils.utils import validar_senha, validar_email, setup_page, load_css
 
 setup_page(titulo="Cadastro", hide_sidebar=True)
+load_css(["styles/geral.css", "styles/components.css"])
 
 # URLs da API
 API_URL = "http://127.0.0.1:5000"
@@ -25,159 +26,186 @@ def main():
     if "novo_usuario" not in st.session_state:
         st.session_state["novo_usuario"] = ""
 
-    # Header do front-end
-    col_back, col_title = st.columns([1, 4])
-    with col_back:
-        if st.button("Voltar", help="Voltar para o login"):
-            st.switch_page("app.py")
+    col_back, col_title = st.columns([1, 6])
 
     with col_title:
-        st.title("Criar Nova Conta")
+        st.markdown('<h1 class="titulo">Criar Conta</h1>',
+                    unsafe_allow_html=True)
 
-    st.markdown("### Preencha seus dados para criar sua conta")
+    with col_back:
+        if st.button("← Voltar", help="Voltar para o login", width="content"):
+            st.switch_page("app.py")
 
-    # Formulário de cadastro
-    with st.form("cadastro_form", clear_on_submit=False):
-        col1, col2 = st.columns(2)
+    # Container do formulário
+    with st.container():
+        st.markdown("### Seus dados")
+        st.caption("Preencha as informações abaixo para criar sua conta")
 
-        lista_generos = [
-            "Ação", "Aventura", "Comédia", "Drama", "Fantasia", "Ficção",
-            "Guerra", "Musical", "Romance", "Suspense", "Terror", "Animação"
-        ]
+        # Formulário de cadastro
+        with st.form("cadastro_form", clear_on_submit=False):
+            col1, col2 = st.columns(2, gap="medium")
 
-        with col1:
-            name = st.text_input(
-                "Nome Completo",
-                placeholder="Digite seu nome completo",
-                help="Nome que será exibido no sistema"
-            )
-            email = st.text_input(
-                "Email",
-                placeholder="seu@email.com",
-                help="Email válido para contato"
-            )
+            lista_generos = [
+                "Ação", "Aventura", "Comédia", "Drama", "Fantasia",
+                "Ficção Científica", "Guerra", "Musical", "Romance",
+                "Suspense", "Terror", "Animação"
+            ]
 
-        with col2:
-            user = st.text_input(
-                "Nome de Usuário",
-                placeholder="Digite um nome para ser seu usuário",
-                help="Nome usado para fazer login"
-            )
-            generos_selecao = st.multiselect(
-                "Gêneros favoritos (escolha três)",
-                options=lista_generos,
-                placeholder="Escolha três opções",
-            )
+            with col1:
+                st.markdown("###### Informações Pessoais")
+                name = st.text_input(
+                    "Nome Completo",
+                    placeholder="Digite seu nome completo",
+                    help="Nome que será exibido no sistema"
+                )
+                email = st.text_input(
+                    "Email",
+                    placeholder="seu@email.com",
+                    help="Email válido para contato e recuperação de senha"
+                )
 
-        password = st.text_input(
-            "Senha",
-            type="password",
-            placeholder="Mínimo 6 caracteres",
-            help="Senha deve conter letras e números"
-        )
+            with col2:
+                st.markdown("###### Preferências")
+                user = st.text_input(
+                    "Nome de Usuário",
+                    placeholder="Digite um nome para ser seu usuário",
+                    help="Nome usado para fazer login (mín. 3 caracteres)"
+                )
+                generos_selecao = st.multiselect(
+                    "Gêneros favoritos",
+                    options=lista_generos,
+                    placeholder="Escolha 3 gêneros",
+                    help="Selecione seus 3 gêneros de filme favoritos",
+                )
 
-        confirm_pw = st.text_input(
-            "Confirmar Senha",
-            type="password",
-            placeholder="Digite a senha novamente"
-        )
+            st.markdown("###### Segurança")
+            col_pass1, col_pass2 = st.columns(2, gap="medium")
 
-        # Validação de senha em tempo real
-        senha_valida, senha_msg = validar_senha(password) if password else (False, "")
-        if password:
-            if senha_valida:
-                st.success(f"{senha_msg}")
-            else:
-                st.warning(f"{senha_msg}")
+            with col_pass1:
+                password = st.text_input(
+                    "Senha",
+                    type="password",
+                    placeholder="Mínimo 6 caracteres",
+                    help="Senha deve conter letras e números"
+                )
 
-        # Checkbox de termos
-        termos = st.checkbox(
-            "Eu aceito os termos de uso e política de privacidade",
-            help="Você deve concordar para prosseguir"
-        )
+            with col_pass2:
+                confirm_pw = st.text_input(
+                    "Confirmar Senha",
+                    type="password",
+                    placeholder="Digite a senha novamente"
+                )
 
-        # Botão de submit (dentro do form)
-        submit = st.form_submit_button(
-            "Criar Conta",
-            use_container_width=True,
-        )
-
-        if submit:
-            # Validações de erros
-            erros = []
-
-            if not name or len(name.strip()) < 2:
-                erros.append("Nome deve ter pelo menos 2 caracteres")
-
-            if not user or len(user.strip()) < 3:
-                erros.append("Nome de usuário deve ter pelo menos 3 caracteres")
-
-            if not email or not validar_email(email):
-                erros.append("Email inválido")
-
-            if not password:
-                erros.append("Senha é obrigatória")
-            elif not senha_valida:
-                erros.append(senha_msg)
-
-            if password != confirm_pw:
-                erros.append("As senhas não coincidem")
-
-            if not termos:
-                erros.append("Você deve aceitar os termos de uso")
-
-            if len(generos_selecao) != 3:
-                erros.append("Por favor, selecione 3 gêneros.")
-
-            # Mostrar erros ou processar cadastro
-            if erros:
-                st.error("Corrija os seguintes problemas:")
-                st.markdown("\n".join([f"- {erro}" for erro in erros]))
-            else:
-                payload = {
-                    "user": user.strip(),
-                    "name": name.strip(),
-                    "email": email.strip().lower(),
-                    "password": password,
-                    "generos_fav": generos_selecao
-                }
-
-                status_code, response = cadastrar_usuario(payload)
-
-                if status_code == 200 and response.get("success"):
-                    # Cadastra o usuário com sucesso
-                    st.session_state["novo_usuario"] = user
-
-                    # Redireciona para página de sucesso
-                    st.switch_page("pages/sucesso.py")
-
+            # Validação de senha em tempo real
+            if password:
+                senha_valida, senha_msg = validar_senha(password)
+                if senha_valida:
+                    st.success(f"✅ {senha_msg}")
                 else:
-                    error_msg = response.get("message", "Erro desconhecido")
-                    if status_code == 409:
-                        st.error("**Nome de usuário já existe!**\n\nTente outro nome de usuário.")
-                    if status_code == 401:
-                        st.error("**Email já cadastrado!**")
-                    else:
-                        st.error(f"**Erro ao criar conta:**\n{error_msg}")
+                    st.warning(f"⚠️ {senha_msg}")
+
+            st.divider()
+            termos = st.checkbox(
+                "✓ Eu aceito os termos de uso e política de privacidade",
+                help="Você deve concordar com os termos para prosseguir"
+            )
+            submit = st.form_submit_button(
+                "Criar Minha Conta",
+                width='stretch',
+                type="primary"
+            )
+
+            if submit:
+                # Validações de erros
+                erros = []
+
+                if not name or len(name.strip()) < 2:
+                    erros.append("Nome deve ter pelo menos 2 caracteres")
+
+                if not user or len(user.strip()) < 3:
+                    erros.append(
+                        "Nome de usuário deve ter pelo menos 3 caracteres")
+
+                if not email or not validar_email(email):
+                    erros.append("Email inválido")
+
+                if not password:
+                    erros.append("Senha é obrigatória")
+                elif not validar_senha(password)[0]:
+                    erros.append(f"{validar_senha(password)[1]}")
+
+                if password != confirm_pw:
+                    erros.append("As senhas não coincidem")
+
+                if not termos:
+                    erros.append("Você deve aceitar os termos de uso")
+
+                if len(generos_selecao) != 3:
+                    erros.append("🎬 Por favor, selecione 3 gêneros")
+
+                # Mostrar erros ou processar cadastro
+                if erros:
+                    st.error("**Corrija os seguintes problemas:**")
+                    for erro in erros:
+                        st.markdown(f"- {erro}")
+                else:
+                    with st.spinner("Criando sua conta..."):
+                        payload = {
+                            "user": user.strip(),
+                            "name": name.strip(),
+                            "email": email.strip().lower(),
+                            "password": password,
+                            "generos_fav": generos_selecao
+                        }
+
+                        status_code, response = cadastrar_usuario(payload)
+
+                        if status_code == 200 and response.get("success"):
+                            st.session_state["novo_usuario"] = user
+                            st.success("Conta criada com sucesso!")
+                            st.switch_page("pages/sucesso.py")
+
+                        else:
+                            error_msg = response.get(
+                                "message", "Erro desconhecido")
+                            if status_code == 409:
+                                st.error(
+                                    "###### Nome de usuário já existe!\n\n"
+                                    "Tente outro nome de usuário."
+                                )
+                            elif status_code == 401:
+                                st.error(
+                                    "###### Email já cadastrado!\n\n"
+                                    "Use outro email ou faça login."
+                                )
+                            else:
+                                st.error(
+                                    f"###### Erro ao criar conta:\n{error_msg}"
+                                    )
 
     # Seção de ajuda
-    with st.expander("❓ Precisa de ajuda?"):
-        st.markdown("""
-        **Dicas para criar sua conta:**
+    with st.expander("💡 Precisa de ajuda?"):
+        col_help1, col_help2 = st.columns(2)
 
-        • **Nome de usuário:** Deve ser único, será usado para login
-        • **Senha forte:** Use pelo menos 6 caracteres com letras e números
-        • **Email válido:** Necessário para recuperação de senha
+        with col_help1:
+            st.markdown("""
+            **📌 Dicas para criar sua conta:**
 
-        **Problemas comuns:**
-        • Nome de usuário já existe → Tente outro nome
-        • Email inválido → Verifique o formato (exemplo@dominio.com)
-        • Senhas não coincidem → Digite a mesma senha nos dois campos
-        """)
+            • **Nome de usuário:** Único, usado para login\n
+            • **Senha forte:** Mínimo 6 caracteres (letras + números)\n
+            • **Email válido:** Para recuperação de senha\n
+            • **Gêneros:** Escolha 3 para personalizar recomendações
+            """)
 
-    # Footer do front-end
-    st.markdown("---")
-    st.caption("Recomendação de Filmes | Já tem conta? Faça login!")
+        with col_help2:
+            st.markdown("""
+            **🔧 Problemas comuns:**
+
+            • Usuário existe → Tente outro nome\n
+            • Email inválido → Use formato válido\n
+            • Senhas diferentes → Digite igual nos dois campos\n
+            • Poucos gêneros → Selecione exatamente 3\n
+            """)
 
 
 # Executa o código
