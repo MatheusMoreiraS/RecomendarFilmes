@@ -1,20 +1,40 @@
+#Qualquer env
+**/.env
+
+#backups
+meu_backup_completo.sql
+
+
 # Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-
-# Virtual env
 venv/
 .env
 
-# IDEs
+#docker 
+postgres_data/
+
+# arquivos
+backend/populate.py
+
+
+# Testes
+################################
+.pytest_cache/
+.coverage
+
+# IDEs e Editores
+################################
 .vscode/
 .idea/
 
-# Arquivos de SO
+# Arquivos de Sistema Operacional
+################################
 .DS_Store
 Thumbs.db
 
-#Bd
-backend/.env
+# Arquivos de Log
+################################
+*.log

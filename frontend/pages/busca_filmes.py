@@ -1,11 +1,14 @@
 import streamlit as st
 import requests
-from utils.utils import setup_page, load_css
+from utils.utils import setup_page, load_css, add_favorito, get_auth
 
 setup_page(titulo="Rotacine", layout="wide", protegida=True)
 
 # CSS Modernizado
 load_css(['styles/geral.css', 'styles/components.css', 'styles/badges.css'])
+
+# Autorização
+headers = get_auth()
 
 # URLs
 API_URL = "http://127.0.0.1:5000"
@@ -13,7 +16,9 @@ IMAGEM_URL = "https://image.tmdb.org/t/p/w500"
 
 # Header
 st.markdown('<h1 class="titulo">🎬 RotaCine</h1>', unsafe_allow_html=True)
-st.markdown('<p class="subtitulo">Descubra filmes incríveis baseados nos seus favoritos</p>', unsafe_allow_html=True)
+st.markdown(
+    '<p class="subtitulo">Descubra filmes com Aprendizado de Máquina!</p>',
+    unsafe_allow_html=True)
 
 # Seção de pesquisa
 col_search, col_button, col_filtro = st.columns([5, 1.5, 2])
@@ -33,19 +38,20 @@ with col_filtro:
     nota_minima = st.selectbox(
         "Filtrar por nota",
         options=[0, 5, 6, 7, 8],
-        format_func=lambda x: f"⭐ Nota mínima: {x}" if x > 0 else "Todas as notas",
+        format_func=lambda x: f"Nota mínima: {x}" if x > 0 else "Todas as notas",
         label_visibility='collapsed'
     )
 
 st.divider()
 
-# Lógica de busca
+# Busca
 if buscar or (termo_pesquisa and len(termo_pesquisa) > 2):
     if termo_pesquisa.strip():
         try:
             with st.spinner('Buscando filmes...'):
                 url = f"{API_URL}/filmes/pesquisar"
-                response = requests.get(url, params={'q': termo_pesquisa}, timeout=10)
+                response = requests.get(url, params={'q': termo_pesquisa},
+                                        timeout=10, headers=headers)
                 response.raise_for_status()
                 resultados = response.json()
 
@@ -65,26 +71,34 @@ if buscar or (termo_pesquisa and len(termo_pesquisa) > 2):
                     col = cols[i % 5]
                     with col:
                         with st.container(border=True):
-                            # Poster
+                            favoritado = filme.get("favoritos", False)
+
+                            texto_botao = "Favoritado" if favoritado else "Favoritar"
+
+                            if st.button(
+                                texto_botao,
+                                key=f"fav_{filme['tmdb_id']}",
+                                use_container_width=False,
+                                disabled=favoritado,
+                            ):
+                                add_favorito(filme['tmdb_id'])
+
                             if filme.get("poster_path"):
                                 st.image(
                                     f"{IMAGEM_URL}{filme['poster_path']}",
                                 )
 
-                            # Título
                             st.markdown(
                                 f'<div class="movie-title">{filme["titulo"]}</div>',
                                 unsafe_allow_html=True
                             )
 
-                            # Gênero
                             if filme['generos']:
                                 st.markdown(
                                     f'<span class="genero-badge">🎭 {filme["generos"]}</span>',
                                     unsafe_allow_html=True
                                 )
 
-                            # Notas
                             nota = filme['media_votos']
                             if nota >= 8:
                                 classe_nota = "nota-alta"
@@ -98,7 +112,6 @@ if buscar or (termo_pesquisa and len(termo_pesquisa) > 2):
                                 unsafe_allow_html=True
                             )
 
-                            # Sinopse
                             with st.expander("Ver sinopse"):
                                 sinopse = filme.get('sinopse')
                                 if sinopse:
@@ -108,8 +121,8 @@ if buscar or (termo_pesquisa and len(termo_pesquisa) > 2):
 
             else:
                 st.warning(
-                    f"🔍 Nenhum filme encontrado para **'{termo_pesquisa}'**")
-                st.info("💡 **Dicas:**\n- Verifique a ortografia"
+                    f"Nenhum filme encontrado para **'{termo_pesquisa}'**")
+                st.info("**Dicas:**\n- Verifique a ortografia"
                         "\n- Tente palavras-chave diferentes"
                         "\n- Reduza a nota mínima no filtro")
 
@@ -122,7 +135,7 @@ if buscar or (termo_pesquisa and len(termo_pesquisa) > 2):
     else:
         st.warning("Por favor, digite o nome de um filme para pesquisar.")
 else:
-    # Tela inicial com instruções
+    # Tela inicial
     st.info("Como funciona?")
     st.caption("Digite o nome de um filme que você gosta no campo acima e"
                " descubra recomendações similares.")

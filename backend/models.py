@@ -29,3 +29,18 @@ class Filmes(db.Model):
 
     def __repr__(self):
         return f'<Filme {self.titulo}>'
+
+
+class Favoritos(db.Model):
+    __tablename__ = 'favoritos'
+    id = db.Column(db.Integer, primary_key=True)
+    id_usuario = db.Column(db.Integer, db.ForeignKey('usuarios.id'),
+                           nullable=False)
+    id_filme = db.Column(db.Integer, db.ForeignKey('filmes.id'),
+                         nullable=False)
+
+    __table_args__ = (db.UniqueConstraint('id_usuario', 'id_filme',
+                                          name='uq_usuario_filme'),)
+
+    def __repr__(self):
+        return f'<Favorito usuario_id={self.id_usuario} filme_id={self.id_filme}>'

@@ -8,7 +8,7 @@ API_URL = "http://127.0.0.1:5000"
 URL_RESET = f"{API_URL}/reset_senha"
 
 
-# Solicita o reset para o backend
+# Solicita o reset
 def solicitar_reset(email: str):
     try:
         response = requests.post(URL_RESET, json={"email": email}, timeout=10)

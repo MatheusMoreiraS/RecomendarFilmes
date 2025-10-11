@@ -2,9 +2,11 @@ import streamlit as st
 import re
 from time import sleep
 from typing import List
+import requests
+
+API_URL = "http://127.0.0.1:5000"
 
 
-# Validação de senha
 def validar_senha(senha):
     if len(senha) < 6:
         return False, "A senha deve ter pelo menos 6 caracteres"
@@ -15,10 +17,30 @@ def validar_senha(senha):
     return True, "Senha válida"
 
 
-# Validação básica de email
 def validar_email(email):
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
     return re.match(pattern, email) is not None
+
+
+def is_logged_in():
+    return st.session_state.get('access_token') not in [None, ""]
+
+
+# Retorna autorização de caso tenha token
+def get_auth():
+    if is_logged_in():
+        token = st.session_state.get('access_token')
+        if token:
+            return {'Authorization': f'Bearer {token}'}
+    return {}
+
+
+def logout():
+    keys_to_clear = ['access_token', 'username']
+    for key in keys_to_clear:
+        if key in st.session_state:
+            del st.session_state[key]
+    st.switch_page("app.py")
 
 
 # Configuração páginas Streamlit
@@ -52,28 +74,25 @@ def setup_page(titulo: str, layout: str = "centered", protegida: bool = False, h
             <style>
             """, unsafe_allow_html=True,
         )
-    if protegida and not st.session_state.get("logged_in", False):
+    if protegida and not is_logged_in():
         st.error("Por favor, faça login primeiro.")
         sleep(4)
         st.switch_page("app.py")
 
-    if st.session_state.get("logged_in", False) and not hide_sidebar:
+    if is_logged_in() and not hide_sidebar:
         st.sidebar.success(f"Logado como: {st.session_state.get('username')}")
         st.sidebar.header("Menu de navegação")
 
         st.sidebar.page_link("pages/busca_filmes.py", label="Buscar filmes")
-        # st.sidebar.page_link("pages/cadastro.py", label="Cadastro")
+        st.sidebar.page_link("pages/favoritos.py", label="Meus Favoritos")
 
         st.sidebar.divider()
 
-        if st.sidebar.button(
-                "Logout", use_container_width=True, type="primary"):
-            st.session_state["logged_in"] = False
-            st.session_state.pop("username", None)
+        if st.sidebar.button("Logout", width='stretch', type="primary"):
+            logout()
             st.switch_page("app.py")
 
 
-# Carregar arquivos CSS
 def load_css(file_paths: List[str]):
     """
     Args:
@@ -88,3 +107,64 @@ def load_css(file_paths: List[str]):
             st.error(f"Arquivo CSS não encontrado em: {file_path}")
 
     st.markdown(f"<style>{full_css}</style>", unsafe_allow_html=True)
+
+
+def add_favorito(tmdb_id):
+    """
+    Args:
+        tmdb_id = id do filme
+    """
+    url = f"{API_URL}/favoritos"
+    payload = {"tmdb_id": tmdb_id}
+    headers = get_auth()
+
+    try:
+        response = requests.post(
+            url, json=payload, headers=headers, timeout=10)
+        data = response.json()
+        if response.status_code == 200:
+            st.toast(f"{data.get('message')}")
+
+        elif response.status_code == 409:
+            st.toast(f"{data.get('message')}")
+
+        else:
+            response.raise_for_status()
+
+    except requests.RequestException as e:
+        st.error(f"Erro ao comunicar com a API: {e}")
+    except Exception as e:
+        st.error(f"Ocorreu um erro inesperado: {e}")
+
+
+def carregar_favoritos():
+    url = f"{API_URL}/favoritos"
+    headers = get_auth()
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        st.error(f"Não foi possível carregar seus favoritos: {e}")
+        return None
+
+
+def remover_favorito(tmdb_id):
+    """
+    Args:
+        tmdb_id = id do filme
+    """
+    url = f"{API_URL}/favoritos/{tmdb_id}"
+    headers = get_auth()
+    try:
+        response = requests.delete(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        if data.get("success"):
+            st.toast("Filme removido com sucesso!")
+            sleep(1)
+            st.rerun()
+        else:
+            st.toast(f"{data.get('message')}")
+    except requests.RequestException as e:
+        st.error(f"Erro ao remover o filme: {e}")

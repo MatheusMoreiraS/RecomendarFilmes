@@ -100,9 +100,9 @@ def main():
             if password:
                 senha_valida, senha_msg = validar_senha(password)
                 if senha_valida:
-                    st.success(f"✅ {senha_msg}")
+                    st.success(f"{senha_msg}")
                 else:
-                    st.warning(f"⚠️ {senha_msg}")
+                    st.warning(f"{senha_msg}")
 
             st.divider()
             termos = st.checkbox(
@@ -141,9 +141,8 @@ def main():
                     erros.append("Você deve aceitar os termos de uso")
 
                 if len(generos_selecao) != 3:
-                    erros.append("🎬 Por favor, selecione 3 gêneros")
+                    erros.append("Por favor, selecione 3 gêneros")
 
-                # Mostrar erros ou processar cadastro
                 if erros:
                     st.error("**Corrija os seguintes problemas:**")
                     for erro in erros:
@@ -189,7 +188,7 @@ def main():
 
         with col_help1:
             st.markdown("""
-            **📌 Dicas para criar sua conta:**
+            ** Dicas para criar sua conta:**
 
             • **Nome de usuário:** Único, usado para login\n
             • **Senha forte:** Mínimo 6 caracteres (letras + números)\n
@@ -199,7 +198,7 @@ def main():
 
         with col_help2:
             st.markdown("""
-            **🔧 Problemas comuns:**
+            ** Problemas comuns:**
 
             • Usuário existe → Tente outro nome\n
             • Email inválido → Use formato válido\n

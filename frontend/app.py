@@ -1,13 +1,13 @@
 import streamlit as st
 import requests
-from utils.utils import setup_page, load_css
+from utils.utils import setup_page, load_css, is_logged_in
 
 # URLS
 URL_LOGIN = "http://127.0.0.1:5000/login"
 API_URL = "http://127.0.0.1:5000"
 
 # Configuração da página
-setup_page(titulo="Recomendação de filmes", hide_sidebar=True)
+setup_page(titulo="RotaCine Login", hide_sidebar=True)
 load_css(["styles/components.css", "styles/geral.css"])
 
 
@@ -31,7 +31,7 @@ def check_login(username, password):
 # Função principal
 def main():
     # Verificar se já está logado
-    if st.session_state.get("logged_in", False):
+    if is_logged_in():
         st.switch_page("pages/busca_filmes.py")
 
     # Interface de Login
@@ -70,7 +70,7 @@ def main():
                             login_result = check_login(username, password)
 
                         if login_result.get("success"):
-                            st.session_state["logged_in"] = True
+                            st.session_state["access_token"] = login_result.get('access_token')
                             st.session_state["username"] = username
                             st.success("Login realizado com sucesso!")
                             st.rerun()

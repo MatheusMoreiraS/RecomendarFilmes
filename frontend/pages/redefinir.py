@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+from time import sleep
 from utils.utils import validar_senha, setup_page, load_css
 
 setup_page(titulo="Redefinição de senha", hide_sidebar=True)
@@ -11,52 +12,54 @@ REDEFINIR_URL = f'{API_URL}/redefinir'
 token = st.query_params.get("token")  # Pega o token da URL
 
 # Verifica o token
-if token:
-    if st.button("Voltar", help="Voltar para o login"):
-        st.switch_page("app.py")
-
-    st.markdown('<h1 class="titulo">Alteração de senha</h1>',
+if not token:
+    st.error("Token de redefinição não encontrado na URL.")
+    st.info("Use o link enviado para o seu email.")
+    sleep(3)
+    st.switch_page("app.py")
+else:
+    st.markdown('<h1 class="titulo">Crie sua nova senha</h1>',
                 unsafe_allow_html=True)
-    nova_senha = st.text_input(
-            "Senha",
-            type="password",
-            placeholder="Mínimo 6 caracteres",
-            help="Senha deve conter letras e números"
-        )
 
-    confirmar = st.text_input(
-            "Confirmar Senha",
+    with st.form("redefinir_form"):
+        nova_senha = st.text_input(
+            "Nova Senha",
+            type="password",
+            placeholder="Mínimo 6 caracteres, com letras e números"
+        )
+        confirmar_senha = st.text_input(
+            "Confirmar Nova Senha",
             type="password",
             placeholder="Digite a senha novamente"
         )
 
-    senha_valida, senha_msg = validar_senha(nova_senha) if nova_senha else (False, "")
-    if senha_msg:
-        if senha_valida:
-            st.success(f"{senha_msg}")
-        else:
-            st.warning(f"{senha_msg}")
+        submitted = st.form_submit_button("Alterar Senha")
 
-    # Altera a senha
-    if st.button("Alterar Senha"):
-        erros = []
-        if not nova_senha:
-            erros.append("Senha é obrigatória")
+        if submitted:
+            senha_valida, msg_validacao = validar_senha(nova_senha)
 
-        elif not senha_valida:
-            erros.append(senha_msg)
-
-        if nova_senha != confirmar:
-            erros.append("As senhas não coincidem")
-
-        if nova_senha == confirmar:
-            resp = requests.post(f"{API_URL}/redefinir",
-                                 json={"token": token, "new_pw": nova_senha})
-
-            if resp.status_code == 200:
-                st.success("Senha redefinida com sucesso! ✅")
-
+            if not nova_senha or not confirmar_senha:
+                st.error("Por favor, preencha ambos os campos.")
+            elif not senha_valida:
+                st.error(f"Senha inválida: {msg_validacao}")
+            elif nova_senha != confirmar_senha:
+                st.error("As senhas não coincidem.")
             else:
-                st.error(resp.json().get("message"))
-        else:
-            st.error("As senhas não conferem")
+                payload = {"token": token, "new_pw": nova_senha}
+                try:
+                    with st.spinner("Atualizando sua senha..."):
+                        resp = requests.post(f"{API_URL}/redefinir",
+                                             json=payload)
+
+                    if resp.status_code == 200:
+                        st.success("Senha redefinida com sucesso! ✅")
+                        st.info("Você já pode fazer login com sua nova senha.")
+                        sleep(4)
+                        st.switch_page("app.py")
+                    else:
+                        error_message = resp.json().get("message",
+                                                        "Erro desconhecido.")
+                        st.error(error_message)
+
+                except requests.RequestException as e:
+                    st.error(f"Erro de conexão com o servidor: {e}")
