@@ -4,6 +4,7 @@ from jwt.exceptions import ExpiredSignatureError, DecodeError
 from werkzeug.security import generate_password_hash, check_password_hash
 import smtplib
 import os
+from flask_migrate import Migrate
 from email.mime.text import MIMEText
 from datetime import timedelta
 from dotenv import load_dotenv
@@ -22,6 +23,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = os.getenv("SECRET_KEY")
 db.init_app(app)
+
+migrate = Migrate(app, db)
 
 # Config jwt
 app.config['JWT_SECRET_KEY'] = os.getenv("JWT_KEY")

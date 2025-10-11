@@ -18,6 +18,7 @@ postgres_data/
 
 # arquivos
 backend/populate.py
+backend/clean_db.py
 
 
 # Testes
