@@ -35,8 +35,9 @@ Siga os passos abaixo para configurar e executar o projeto em seu ambiente local
 **Pré-requisitos:**
 * Git
 * Docker Desktop instalado e em execução
+* Python 3.11+ (apenas para frontend, em breve dockerizado)
 
-Você não precisará do Python ou PostgreSQL instalado em sua máquina.
+Você não precisará do PostgreSQL instalado em sua máquina.
 
 ## Configuração do Backend
 
